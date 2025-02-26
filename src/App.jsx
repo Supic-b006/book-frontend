@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const App = () => {
   const [books, setBooks] = useState([]);
-  const [newBook, setNewBook] = useState({ title: '', author: '', image_url: ''});
+  const [newBook, setNewBook] = useState({ title: "", author: "", image_url: "" });
   const [editBook, setEditBook] = useState(null);
-  const uri = 'https://scaling-parakeet-5gv9p6vpv6c4977-5001.app.github.dev/'
+  const uri = "https://improved-space-invention-g49qp9w6wgjf977v-5001.app.github.dev/";
+
   useEffect(() => {
     fetchBooks();
   }, []);
@@ -15,7 +16,7 @@ const App = () => {
       const response = await axios.get(`${uri}/books`);
       setBooks(response.data.books);
     } catch (error) {
-      console.error('Error fetching books:', error);
+      console.error("Error fetching books:", error);
     }
   };
 
@@ -28,13 +29,22 @@ const App = () => {
     }
   };
 
+  const validateForm = (book) => {
+    if (!book.title || !book.author || !book.image_url) {
+      alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
+      return false;
+    }
+    return true;
+  };
+
   const handleCreateBook = async () => {
+    if (!validateForm(newBook)) return;
     try {
       const response = await axios.post(`${uri}/books`, newBook);
       setBooks([...books, response.data]);
-      setNewBook({ title: '', author: '', image_url: '' }); // Clear the form
+      setNewBook({ title: "", author: "", image_url: "" });
     } catch (error) {
-      console.error('Error creating book:', error);
+      console.error("Error creating book:", error);
     }
   };
 
@@ -43,25 +53,23 @@ const App = () => {
   };
 
   const handleUpdateBook = async () => {
-    try {
-      const response = await axios.put(`${uri}/books/${editBook.id}`, editBook);
-      const updatedBooks = books.map((book) =>
-        book.id === editBook.id ? response.data : book
-      );
-      setBooks(updatedBooks);
-      setEditBook(null); // Clear edit mode
-    } catch (error) {
-      console.error('Error updating book:', error);
+    if (editBook && validateForm(editBook)) {
+      try {
+        await axios.put(`${uri}/books/${editBook._id}`, editBook);
+        fetchBooks();
+        setEditBook(null);
+      } catch (error) {
+        console.error("Error updating book:", error);
+      }
     }
   };
 
   const handleDeleteBook = async (bookId) => {
     try {
       await axios.delete(`${uri}/books/${bookId}`);
-      const filteredBooks = books.filter((book) => book.id !== bookId);
-      setBooks(filteredBooks);
+      setBooks(books.filter((book) => book._id !== bookId));
     } catch (error) {
-      console.error('Error deleting book:', error);
+      console.error("Error deleting book:", error);
     }
   };
 
@@ -80,51 +88,36 @@ const App = () => {
         </thead>
         <tbody>
           {books.map((book) => (
-            <tr key={book.id}>
-              <td>{book.id}</td>
+            <tr key={book._id}>
+              <td>{book._id}</td>
               <td>
-              {editBook && editBook.id === book.id ? (
-                <input
-                  type="text"
-                  name="image_url"
-                  value={editBook.image_url}
-                  onChange={handleInputChange}
-                />
+                {editBook && editBook._id === book._id ? (
+                  <input type="text" name="image_url" value={editBook.image_url} onChange={handleInputChange} />
                 ) : (
-                  <img src={book.image_url} alt={book.title} width="50" /> 
+                  <img src={book.image_url} alt={book.title} width="50" />
                 )}
               </td>
               <td>
-                {editBook && editBook.id === book.id ? (
-                  <input
-                    type="text"
-                    name="title"
-                    value={editBook.title}
-                    onChange={handleInputChange}
-                  />
+                {editBook && editBook._id === book._id ? (
+                  <input type="text" name="title" value={editBook.title} onChange={handleInputChange} />
                 ) : (
                   book.title
                 )}
               </td>
               <td>
-                {editBook && editBook.id === book.id ? (
-                  <input
-                    type="text"
-                    name="author"
-                    value={editBook.author}
-                    onChange={handleInputChange}
-                  />
+                {editBook && editBook._id === book._id ? (
+                  <input type="text" name="author" value={editBook.author} onChange={handleInputChange} />
                 ) : (
                   book.author
                 )}
               </td>
               <td>
-                {editBook && editBook.id === book.id ? (
+                {editBook && editBook._id === book._id ? (
                   <button onClick={handleUpdateBook}>Update</button>
                 ) : (
                   <button onClick={() => handleEditBook(book)}>Edit</button>
                 )}
-                <button onClick={() => handleDeleteBook(book.id)}>Delete</button>
+                <button onClick={() => handleDeleteBook(book._id)}>Delete</button>
               </td>
             </tr>
           ))}
@@ -132,30 +125,12 @@ const App = () => {
       </table>
 
       <h2>Add New Book</h2>
-      <input
-        type="text"
-        name="title"
-        placeholder="Title"
-        value={newBook.title}
-        onChange={handleInputChange}
-      />
-      <input
-        type="text"
-        name="author"
-        placeholder="Author"
-        value={newBook.author}
-        onChange={handleInputChange}
-      />
-      <input  
-        type="text"
-        name="image_url"
-        placeholder="Image URL"
-        value={newBook.image_url}
-        onChange={handleInputChange}
-      />
+      <input type="text" name="title" placeholder="Title" value={newBook.title} onChange={handleInputChange} />
+      <input type="text" name="author" placeholder="Author" value={newBook.author} onChange={handleInputChange} />
+      <input type="text" name="image_url" placeholder="Image URL" value={newBook.image_url} onChange={handleInputChange} />
       <button onClick={handleCreateBook}>Create</button>
     </div>
   );
 };
 
-export default App;
+export default App; 
